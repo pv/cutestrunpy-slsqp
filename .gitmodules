@@ -1,0 +1,9 @@
+[submodule "archdefs"]
+	path = archdefs
+	url = https://github.com/ralna/ARCHDefs
+[submodule "sifdecode"]
+	path = sifdecode
+	url = https://github.com/ralna/SIFDecode
+[submodule "cutest"]
+	path = cutest
+	url = https://github.com/ralna/CUTEst

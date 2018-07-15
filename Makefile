@@ -22,8 +22,10 @@ export PYTHONPATH = $(PYCUTEST_CACHE):$(CUTEST)/src/python
 patch: build/cutest-patch-stamp
 
 build/cutest-patch-stamp:
-	git -C $(CUTEST) clean -f -d -x
-	git -C $(CUTEST) reset --hard
+	for repo in "$(CUTEST)" "$(ARCHDEFS)" "$(SIFDECODE)"; do \
+		git -C "$$repo" clean -f -d -x; \
+		git -C "$$repo" reset --hard; \
+	done
 	install -d build
 	install -d $(CUTEST)/src/python
 	cp -f pycutestitf.c $(CUTEST)/src/tools

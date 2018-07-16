@@ -61,7 +61,7 @@ export NPY_NUM_BUILD_JOBS=4
 
 env:
 	$(PYTHON) -mvirtualenv env
-	./env-inst/bin/python -mpip install numpy scipy
+	./env/bin/python -mpip install numpy scipy
 
 env-dev:
 	$(PYTHON) -mvirtualenv env-dev
@@ -72,7 +72,7 @@ run-installed:
 	make run "PYTHON=$(CURDIR)/env/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/installed" 2>&1|tee run-installed.log
 
 run-dev:
-	make run "PYTHON=$(CURDIR)/env-dev/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/dev" 2>&1|tee run-installed.log
+	make run "PYTHON=$(CURDIR)/env-dev/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/dev" 2>&1|tee run-dev.log
 
 
 .PHONY: patch build run run-installed run-dev

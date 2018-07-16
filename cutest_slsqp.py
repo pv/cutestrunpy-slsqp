@@ -6,6 +6,7 @@ import numpy as np
 from numpy.linalg import norm
 import scipy.sparse as spc
 import warnings
+import sys
 
 import scipy
 
@@ -17,10 +18,12 @@ def print_header():
     print("="*len(hdr))
     print(hdr)
     print("-"*len(hdr))
+    sys.stdout.flush()
 
 def print_problem_sol(*args):
     fmt = "|{:^7}"*len(args) + "|"
     print(fmt.format(*args))
+    sys.stdout.flush()
 
 default_options = {'sparse_jacobian':True, 'maxiter':1000, 'xtol':1e-7, 'gtol':1e-7}
 list_feasible_box_constr = ["HS13", "HS105", "BROYDNBD"]
@@ -123,10 +126,10 @@ def solve_problem(prob):
     if result.success:
         c = constr_dict[0]['fun'](result.x)
         c0 = constr_dict[0]['fun'](result0.x)
-        cons_ok = (c > -1e-3 * (1 + np.linalg.norm(c0))).all()
+        cons_ok = (c > -1e-4 * (1 + np.linalg.norm(c0))).all()
 
         if result0.status:
-            agree_trust_constr = np.linalg.norm(result.x - result0.x) < 1e-3 * (1 + np.linalg.norm(result0.x))
+            agree_trust_constr = np.linalg.norm(result.x - result0.x) < 1e-4 * (1 + np.linalg.norm(result0.x))
         else:
             agree_trust_constr = "--"
     else:

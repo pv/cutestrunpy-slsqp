@@ -6,21 +6,24 @@ import numpy as np
 from numpy.linalg import norm
 import scipy.sparse as spc
 import warnings
-cute.clearCache('HS71')
+
+import scipy
+
+print(scipy.__version__)
 
 def print_header():
-    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6:^10}|{7:^10}|{8:^10}|{9:^10}|"
-          .format("name", "n", "m", "nnz", "niters", "f evals", "CG iters", "time", "opt", "c viol"))
+    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6:^10}|"
+          .format("name", "n", "m", "nnz", "niters", "f evals", "ok"))
     s = "-"*9 + ":"
     s1 = "-"*4 + ":"
     s2 =  ":" + "-"*23 + ":"
     s3 = "-"*5 + ":"
-    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6:^10}|{7:^10}|{8:^10}|{9:^10}|"
-          .format(s, s1, s1, s3, s, s, s, s, s, s, s2, s))
+    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6:^10}"
+          .format(s, s1, s1, s3, s, s, s, s, s2))
 
-def print_problem_sol(name, n, m, nnz, niters, nfev, cg_niters, time, opt, c_viol, method):
-    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6:^10}|{7:^10}|{8:^1.4e}|{9:^1.4e}|"
-          .format(name, n, m, nnz, niters, nfev, cg_niters, round(time, 2), opt, c_viol))
+def print_problem_sol(name, n, m, nnz, niters, nfev, *args):
+    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6}"
+          .format(name, n, m, nnz, niters, nfev, "|".join(map(str, args))))
 
 default_options = {'sparse_jacobian':True, 'maxiter':1000, 'xtol':1e-7, 'gtol':1e-7}
 list_feasible_box_constr = ["HS13", "HS105", "BROYDNBD"]
@@ -89,19 +92,44 @@ def solve_problem(prob):
 
 
     # Constraints
-    constr = NonlinearConstraint(constr,  c_lb, c_ub, jac, lagr_hess)
-    box = Bounds(lb, ub, name in list_feasible_box_constr)
+    cons_ub_mask = ~np.isinf(c_ub)
+    cons_lb_mask = ~np.isinf(c_lb)
+    
+    def constr_onesided(x):
+        c = problem.cons(x)
+        a = (c - c_lb)[cons_lb_mask]
+        b = (c_ub - c)[cons_ub_mask]
+        return np.r_[a, b]
 
-    start_time = time.time()
+    def jac_onesided(x):
+        _, A1 = problem.cons(x, True)
+        return np.vstack([A1[cons_lb_mask,:],
+                          -A1[cons_ub_mask,:]])
+
+    constr_dict = [dict(type='ineq',
+                        fun=constr_onesided,
+                        jac=jac_onesided)]
+    box = [(a, b) for a, b in zip(lb, ub)]
+
+    constr_t = NonlinearConstraint(constr,  c_lb, c_ub, jac, lagr_hess)
+    box_t = Bounds(lb, ub, name in list_feasible_box_constr)
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        result = minimize(fun, x0, method='trust-constr', jac=grad, hess=hess, constraints=constr, 
+        result = minimize(fun, x0, method='SLSQP', jac=grad, hess=hess, constraints=constr_dict, 
                           bounds=box, options=options)
-    total_time = time.time() - start_time
+
+        result0 = minimize(fun, x0, method='trust-constr', jac=grad, hess=hess, constraints=constr_t, 
+                          bounds=box_t, options=options)
+
     # Print Results
-    print_problem_sol(name, n, m, nnz, result.niter, result.nfev,
-                      result.cg_niter, total_time, result.optimality, 
-                      result.constr_violation, result.method)
+    oksol = (constr_dict[0]['fun'](result.x) > -1e-3).all()
+    samesol = np.allclose(result.x, result0.x, rtol=1e-2, atol=1e-2)
+
+    print_problem_sol(name, n, m, nnz, result.nit, result.nfev,
+                      result.success, bool(result0.status),
+                      oksol,
+                      samesol)
     return result
 
 ip_problems = [("CORKSCRW", {"T": 50}, {}),  
@@ -201,6 +229,8 @@ print_header()
 for prob in problems_si:
     solve_problem(prob)
 
+raise SystemExit(0)
+    
 # Print Header
 print_header()
 # Print Table

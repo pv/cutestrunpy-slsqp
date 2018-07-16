@@ -14,6 +14,8 @@ export PYCUTEST = $(CUTEST)/src/tools
 export PYCUTEST_CACHE = $(CURDIR)/cache
 export PYTHONPATH = $(PYCUTEST_CACHE):$(CUTEST)/src/python
 
+PYTHON=python
+
 
 #
 # Patch
@@ -49,7 +51,7 @@ build/cutest-build-stamp: build/cutest-patch-stamp
 
 run: build
 	install -d $(PYCUTEST_CACHE)
-	OPT="-O2 -w" python $(SCRIPT)
+	OPT="-O2 -w" $(PYTHON) $(SCRIPT)
 
 
 .PHONY: patch build

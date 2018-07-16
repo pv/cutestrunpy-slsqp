@@ -16,6 +16,7 @@ export PYTHONPATH = $(PYCUTEST_CACHE):$(CUTEST)/src/python
 
 PYTHON=python
 
+all: run-installed run-dev
 
 #
 # Patch
@@ -68,12 +69,12 @@ env-dev:
 	./env-dev/bin/python -mpip install numpy Cython Tempita
 	./env-dev/bin/python -mpip install git+https://github.com/scipy/scipy@refs/pull/8986/head
 
-run-installed:
+run-installed: build env
 	make run "PYTHON=$(CURDIR)/env/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/installed" 2>&1|tee run-installed.log
 
-run-dev:
+run-dev: build env-dev
 	make run "PYTHON=$(CURDIR)/env-dev/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/dev" 2>&1|tee run-dev.log
 
 
-.PHONY: patch build run run-installed run-dev
+.PHONY: patch build run run-installed run-dev all
 

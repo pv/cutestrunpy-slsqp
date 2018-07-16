@@ -49,7 +49,7 @@ build/cutest-build-stamp: build/cutest-patch-stamp
 
 run: build
 	install -d $(PYCUTEST_CACHE)
-	python
+	OPT="-O2 -w" python $(SCRIPT)
 
 
 .PHONY: patch build

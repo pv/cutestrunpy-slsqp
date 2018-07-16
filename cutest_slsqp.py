@@ -12,18 +12,15 @@ import scipy
 print(scipy.__version__)
 
 def print_header():
-    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6:^10}|"
-          .format("name", "n", "m", "nnz", "niters", "f evals", "ok"))
-    s = "-"*9 + ":"
-    s1 = "-"*4 + ":"
-    s2 =  ":" + "-"*23 + ":"
-    s3 = "-"*5 + ":"
-    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6:^10}"
-          .format(s, s1, s1, s3, s, s, s, s, s2))
+    hdr = ("|{:^7}|{:^7}|{:^7}|{:^7}|{:^7}|{:^7}|"
+           .format("name", "nit", "nfev", "success", "cons_ok", "ok_trust_constr"))
+    print("="*len(hdr))
+    print(hdr)
+    print("-"*len(hdr))
 
-def print_problem_sol(name, n, m, nnz, niters, nfev, *args):
-    print("|{0:^10}|{1:^5}|{2:^5}|{3:^6}|{4:^10}|{5:^10}|{6}"
-          .format(name, n, m, nnz, niters, nfev, "|".join(map(str, args))))
+def print_problem_sol(*args):
+    fmt = "|{:^7}"*len(args) + "|"
+    print(fmt.format(*args))
 
 default_options = {'sparse_jacobian':True, 'maxiter':1000, 'xtol':1e-7, 'gtol':1e-7}
 list_feasible_box_constr = ["HS13", "HS105", "BROYDNBD"]
@@ -123,13 +120,17 @@ def solve_problem(prob):
                           bounds=box_t, options=options)
 
     # Print Results
-    oksol = (constr_dict[0]['fun'](result.x) > -1e-3).all()
-    samesol = np.allclose(result.x, result0.x, rtol=1e-2, atol=1e-2)
+    c = constr_dict[0]['fun'](result.x)
+    c0 = constr_dict[0]['fun'](result0.x)
+    cons_ok = (c > -1e-3 * (1 + np.linalg.norm(c0))).all()
 
-    print_problem_sol(name, n, m, nnz, result.nit, result.nfev,
-                      result.success, bool(result0.status),
-                      oksol,
-                      samesol)
+    if result0.status:
+        agree_trust_constr = np.linalg.norm(result.x - result0.x) < 1e-3 * (1 + np.linalg.norm(result0.x))
+    else:
+        agree_trust_constr = "--"
+
+    print_problem_sol(name, result.nit, result.nfev, result.success,
+                      cons_ok, agree_trust_constr)
     return result
 
 ip_problems = [("CORKSCRW", {"T": 50}, {}),  

@@ -53,6 +53,27 @@ run: build
 	install -d $(PYCUTEST_CACHE)
 	OPT="-O2 -w" $(PYTHON) $(SCRIPT)
 
+#
+# Virtualenv
+#
 
-.PHONY: patch build
+export NPY_NUM_BUILD_JOBS=4
+
+env:
+	$(PYTHON) -mvirtualenv env
+	./env-inst/bin/python -mpip install numpy scipy
+
+env-dev:
+	$(PYTHON) -mvirtualenv env-dev
+	./env-dev/bin/python -mpip install numpy Cython Tempita
+	./env-dev/bin/python -mpip install git+https://github.com/scipy/scipy@refs/pull/8986/head
+
+run-installed:
+	$(MAKE) run "PYTHON=$(CURDIR)env/bin/python" 2>&1|tee run-installed.log
+
+run-dev:
+	$(MAKE) run "PYTHON=$(CURDIR)env-dev/bin/python"2>&1|tee run-installed.log
+
+
+.PHONY: patch build run run-installed run-dev
 

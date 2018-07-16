@@ -14,8 +14,17 @@ import scipy
 
 print(scipy.__version__)
 
+check_tol = 1e-3
+print(check_tol)
+
+
+import psutil
+import resource
+max_mem = int(0.7 * psutil.virtual_memory().available)
+resource.setrlimit(resource.RLIMIT_AS, (max_mem, max_mem))
+
 def print_header():
-    hdr = ("|{:^7}|{:^7}|{:^7}|{:^7}|{:^7}|{:^7}|"
+    hdr = ("|{:^8}|{:^8}|{:^8}|{:^8}|{:^8}|{:^8}|"
            .format("name", "nit", "nfev", "success", "cons_ok", "ok_trust_constr"))
     print("="*len(hdr))
     print(hdr)
@@ -23,7 +32,7 @@ def print_header():
     sys.stdout.flush()
 
 def print_problem_sol(*args):
-    fmt = "|{:^7}"*len(args) + "|"
+    fmt = "|{:^8}"*len(args) + "|"
     print(fmt.format(*args))
     sys.stdout.flush()
 
@@ -34,20 +43,24 @@ def solve_problem(prob):
     name = prob[0]
     cache_file = os.path.join(os.environ['PYCUTEST_CACHE'],
                               'result-' + name + '.json')
+
     try:
         with open(cache_file, 'r') as f:
             result = json.load(f)
-        if len(result) != 6:
+        if len(result) != 6+1:
             raise IOError()
     except (IOError, ValueError):
         result = None
 
-    if result is None:
-        result = _solve_problem(prob)
+    hash_data = [check_tol, prob[1], prob[2]]
+    hash_data = json.loads(json.dumps(hash_data))
+
+    if result is None or result[-1] != hash_data:
+        result = list(_solve_problem(prob)) + [hash_data]
         with open(cache_file, 'w') as f:
             json.dump(result, f)
 
-    print_problem_sol(*result)    
+    print_problem_sol(*result[:-1])    
     
 def _solve_problem(prob):
     name = prob[0]
@@ -147,10 +160,10 @@ def _solve_problem(prob):
     if result.success:
         c = constr_dict[0]['fun'](result.x)
         c0 = constr_dict[0]['fun'](result0.x)
-        cons_ok = int((c > -1e-4 * (1 + np.linalg.norm(c0))).all())
+        cons_ok = int((c > -check_tol * (1 + np.linalg.norm(c0))).all())
 
         if result0.status:
-            agree_trust_constr = int(np.linalg.norm(result.x - result0.x) < 1e-4 * (1 + np.linalg.norm(result0.x)))
+            agree_trust_constr = int(np.linalg.norm(result.x - result0.x) < check_tol * (1 + np.linalg.norm(result0.x)))
         else:
             agree_trust_constr = "--"
     else:
@@ -164,12 +177,12 @@ def _solve_problem(prob):
 ip_problems = [("CORKSCRW", {"T": 50}, {}),  
                ("COSHFUN", {"M": 20}, {"initial_barrier_parameter": 0.1, "initial_tr_radius": 5,"initial_barrier_tolerance":1, "initial_constr_penalty":0.01}),
                ("DIXCHLNV", {"N":100}, {}),
-               ("HAGER4", {"N": 1000}, {}),
+               ("HAGER4", {"N": 100}, {}),
                ("HIMMELBK", {}, {}),
                ("NGONE", {"HNS": 49}, {"initial_tr_radius": 100}), #  many iteractions
                ("OPTCNTRL", {}, {}), 
                ("OPTMASS", {"N": 200}, {}),
-               ("ORTHREGF", {"NPTS": 20}, {}),
+               ("ORTHREGF", {"NPTS": 10}, {}),
                ("SVANBERG", {"N": 500}, {}), 
                ("READING1", {"N": 100}, {})]
 
@@ -233,20 +246,20 @@ problems_si = [("HS7", {}, {}),
             ("HS117", {}, {}),
             ("HS118", {}, {}),
             ("HS119", {}, {})]
-sqp_problems = [("HAGER2", {"N": 5000}, {}),
-                ("HAGER3", {"N": 5000}, {}),
+sqp_problems = [("HAGER2", {"N": 500}, {}),
+                ("HAGER3", {"N": 500}, {}),
                 ("ORTHREGA", {'LEVELS': 5}, {}),
                 ("ORTHREGC", {'NPTS': 500}, {}),
-                ("ORTHREGD", {'NPTS': 5000}, {"initial_tr_radius": 100,"initial_constr_penalty":1}),
+                ("ORTHREGD", {'NPTS': 500}, {"initial_tr_radius": 100,"initial_constr_penalty":1}),
                 ("DTOC1ND", {'N': 500, 'NX':2, 'NY':4}, {"initial_tr_radius": 1000, "initial_constr_penalty":1}),
                 ("DTOC2", {'N': 500, 'NX':2, 'NY':4}, {}),
                 ("DTOC3", {}, {}),
-                ("DTOC4", {'N': 5000}, {}),
-                ("DTOC5", {'N': 5000}, {}),
-                ("DTOC6", {'N': 1001}, {}),
+                ("DTOC4", {'N': 500}, {}),
+                ("DTOC5", {'N': 500}, {}),
+                ("DTOC6", {'N': 101}, {}),
                 ("EIGENA2", {'N': 50}, {}),
                 ("EIGENC2", {'M': 10}, {}),
-                ("ARTIF", {'N': 1000}, {}),
+                ("ARTIF", {'N': 100}, {}),
                 ("BRATU3D", {'P':17}, {}),
                 ]
 

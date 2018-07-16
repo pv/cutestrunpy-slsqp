@@ -63,11 +63,11 @@ export NPY_NUM_BUILD_JOBS=4
 
 env:
 	$(PYTHON) -mvirtualenv env
-	./env/bin/python -mpip install numpy scipy
+	./env/bin/python -mpip install numpy scipy psutil
 
 env-dev:
 	$(PYTHON) -mvirtualenv env-dev
-	./env-dev/bin/python -mpip install numpy Cython Tempita
+	./env-dev/bin/python -mpip install numpy Cython Tempita psutil
 	./env-dev/bin/python -mpip install git+https://github.com/scipy/scipy@refs/pull/8986/head
 
 run-installed: build env

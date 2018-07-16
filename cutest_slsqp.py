@@ -120,13 +120,17 @@ def solve_problem(prob):
                           bounds=box_t, options=options)
 
     # Print Results
-    c = constr_dict[0]['fun'](result.x)
-    c0 = constr_dict[0]['fun'](result0.x)
-    cons_ok = (c > -1e-3 * (1 + np.linalg.norm(c0))).all()
+    if result.success:
+        c = constr_dict[0]['fun'](result.x)
+        c0 = constr_dict[0]['fun'](result0.x)
+        cons_ok = (c > -1e-3 * (1 + np.linalg.norm(c0))).all()
 
-    if result0.status:
-        agree_trust_constr = np.linalg.norm(result.x - result0.x) < 1e-3 * (1 + np.linalg.norm(result0.x))
+        if result0.status:
+            agree_trust_constr = np.linalg.norm(result.x - result0.x) < 1e-3 * (1 + np.linalg.norm(result0.x))
+        else:
+            agree_trust_constr = "--"
     else:
+        cons_ok = "--"
         agree_trust_constr = "--"
 
     print_problem_sol(name, result.nit, result.nfev, result.success,
@@ -230,8 +234,6 @@ print_header()
 for prob in problems_si:
     solve_problem(prob)
 
-raise SystemExit(0)
-    
 # Print Header
 print_header()
 # Print Table

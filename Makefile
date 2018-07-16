@@ -69,10 +69,10 @@ env-dev:
 	./env-dev/bin/python -mpip install git+https://github.com/scipy/scipy@refs/pull/8986/head
 
 run-installed:
-	$(MAKE) run "PYTHON=$(CURDIR)env/bin/python" 2>&1|tee run-installed.log
+	make run "PYTHON=$(CURDIR)/env/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/installed" 2>&1|tee run-installed.log
 
 run-dev:
-	$(MAKE) run "PYTHON=$(CURDIR)env-dev/bin/python"2>&1|tee run-installed.log
+	make run "PYTHON=$(CURDIR)/env-dev/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/dev" 2>&1|tee run-installed.log
 
 
 .PHONY: patch build run run-installed run-dev

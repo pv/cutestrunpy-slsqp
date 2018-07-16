@@ -7,6 +7,8 @@ from numpy.linalg import norm
 import scipy.sparse as spc
 import warnings
 import sys
+import os
+import json
 
 import scipy
 
@@ -29,6 +31,25 @@ default_options = {'sparse_jacobian':True, 'maxiter':1000, 'xtol':1e-7, 'gtol':1
 list_feasible_box_constr = ["HS13", "HS105", "BROYDNBD"]
 
 def solve_problem(prob):
+    name = prob[0]
+    cache_file = os.path.join(os.environ['PYCUTEST_CACHE'],
+                              'result-' + name + '.json')
+    try:
+        with open(cache_file, 'r') as f:
+            result = json.load(f)
+        if len(result) != 6:
+            raise IOError()
+    except (IOError, ValueError):
+        result = None
+
+    if result is None:
+        result = _solve_problem(prob)
+        with open(cache_file, 'w') as f:
+            json.dump(result, f)
+
+    print_problem_sol(*result)    
+    
+def _solve_problem(prob):
     name = prob[0]
     sifParams = prob[1]
     options = prob[2]        
@@ -126,19 +147,19 @@ def solve_problem(prob):
     if result.success:
         c = constr_dict[0]['fun'](result.x)
         c0 = constr_dict[0]['fun'](result0.x)
-        cons_ok = (c > -1e-4 * (1 + np.linalg.norm(c0))).all()
+        cons_ok = int((c > -1e-4 * (1 + np.linalg.norm(c0))).all())
 
         if result0.status:
-            agree_trust_constr = np.linalg.norm(result.x - result0.x) < 1e-4 * (1 + np.linalg.norm(result0.x))
+            agree_trust_constr = int(np.linalg.norm(result.x - result0.x) < 1e-4 * (1 + np.linalg.norm(result0.x)))
         else:
             agree_trust_constr = "--"
     else:
         cons_ok = "--"
         agree_trust_constr = "--"
 
-    print_problem_sol(name, result.nit, result.nfev, result.success,
-                      cons_ok, agree_trust_constr)
-    return result
+    return (name, result.nit, result.nfev, int(result.success),
+            cons_ok, agree_trust_constr)
+
 
 ip_problems = [("CORKSCRW", {"T": 50}, {}),  
                ("COSHFUN", {"M": 20}, {"initial_barrier_parameter": 0.1, "initial_tr_radius": 5,"initial_barrier_tolerance":1, "initial_constr_penalty":0.01}),

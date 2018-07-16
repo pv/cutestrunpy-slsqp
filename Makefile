@@ -16,7 +16,8 @@ export PYTHONPATH = $(PYCUTEST_CACHE):$(CUTEST)/src/python
 
 PYTHON=python
 
-all: run-installed run-dev
+
+all: diff
 
 #
 # Patch
@@ -76,5 +77,9 @@ run-dev: build env-dev
 	make run "PYTHON=$(CURDIR)/env-dev/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/dev" 2>&1|tee run-dev.log
 
 
-.PHONY: patch build run run-installed run-dev all
+diff: run-installed run-dev
+	diff -u run-installed.log run-dev.log
+
+
+.PHONY: patch build run run-installed run-dev all diff
 

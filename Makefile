@@ -1,4 +1,4 @@
-all: archdefs
+all: build sif env env-dev diff
 
 export ARCHDEFS = $(CURDIR)/archdefs
 export SIFDECODE = $(CURDIR)/sifdecode
@@ -16,8 +16,6 @@ export PYTHONPATH = $(PYCUTEST_CACHE):$(CUTEST)/src/python
 
 PYTHON=python
 
-
-all: sif diff
 
 #
 # Patch

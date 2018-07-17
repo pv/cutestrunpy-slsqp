@@ -17,7 +17,7 @@ export PYTHONPATH = $(PYCUTEST_CACHE):$(CUTEST)/src/python
 PYTHON=python
 
 
-all: diff
+all: sif diff
 
 #
 # Patch

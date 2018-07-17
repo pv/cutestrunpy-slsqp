@@ -15,8 +15,6 @@ import scipy
 print(scipy.__version__)
 
 check_tol = 1e-3
-print(check_tol)
-
 
 import psutil
 import resource

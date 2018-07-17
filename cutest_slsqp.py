@@ -21,9 +21,11 @@ import resource
 max_mem = int(0.7 * psutil.virtual_memory().available)
 resource.setrlimit(resource.RLIMIT_AS, (max_mem, max_mem))
 
+header_names = ("name", "n", "neq", "nineq", "nit", "nfev", "success", "cons_ok", "ok_trust_constr")
+
 def print_header():
-    hdr = ("|{:^8}|{:^8}|{:^8}|{:^8}|{:^8}|{:^8}|"
-           .format("name", "nit", "nfev", "success", "cons_ok", "ok_trust_constr"))
+    fmt = "|{:^8}"*len(header_names) + "|"
+    hdr = fmt.format(*header_names)
     print("="*len(hdr))
     print(hdr)
     print("-"*len(hdr))
@@ -45,7 +47,7 @@ def solve_problem(prob):
     try:
         with open(cache_file, 'r') as f:
             result = json.load(f)
-        if len(result) != 6+1:
+        if len(result) != len(header_names) + 1:
             raise IOError()
     except (IOError, ValueError):
         result = None
@@ -55,6 +57,7 @@ def solve_problem(prob):
 
     if result is None or result[-1] != hash_data:
         result = list(_solve_problem(prob)) + [hash_data]
+        assert len(result) == len(header_names) + 1
         with open(cache_file, 'w') as f:
             json.dump(result, f)
 
@@ -188,7 +191,8 @@ def _solve_problem(prob):
         cons_ok = "--"
         agree_trust_constr = "--"
 
-    return (name, result.nit, result.nfev, int(result.success),
+    return (name, len(result.x), cons_eq_mask.sum(), cons_ub_mask.sum() + cons_lb_mask.sum(),
+            result.nit, result.nfev, int(result.success),
             cons_ok, agree_trust_constr)
 
 

@@ -124,23 +124,43 @@ def _solve_problem(prob):
 
 
     # Constraints
-    cons_ub_mask = ~np.isinf(c_ub)
-    cons_lb_mask = ~np.isinf(c_lb)
+    cons_eq_mask = (c_ub == c_lb) & (~np.isinf(c_ub))
     
+    cons_ub_mask = (~np.isinf(c_ub)) & (~cons_eq_mask)
+    cons_lb_mask = (~np.isinf(c_lb)) & (~cons_eq_mask)
+
+    def constr_eq(x):
+        c = problem.cons(x)
+        a = (c - c_lb)[cons_eq_mask]
+        return a
+
     def constr_onesided(x):
         c = problem.cons(x)
         a = (c - c_lb)[cons_lb_mask]
         b = (c_ub - c)[cons_ub_mask]
         return np.r_[a, b]
 
+    def jac_eq(x):
+        _, A1 = problem.cons(x, True)
+        return A1[cons_eq_mask,:]
+
     def jac_onesided(x):
         _, A1 = problem.cons(x, True)
         return np.vstack([A1[cons_lb_mask,:],
                           -A1[cons_ub_mask,:]])
 
-    constr_dict = [dict(type='ineq',
-                        fun=constr_onesided,
-                        jac=jac_onesided)]
+    constr_dict = []
+
+    if cons_eq_mask.any():
+        constr_dict.append(dict(type='eq',
+                                fun=constr_eq,
+                                jac=jac_eq))
+
+    if cons_ub_mask.any() or cons_lb_mask.any():
+        constr_dict.append(dict(type='ineq',
+                                fun=constr_onesided,
+                                jac=jac_onesided))
+
     box = [(a, b) for a, b in zip(lb, ub)]
 
     constr_t = NonlinearConstraint(constr,  c_lb, c_ub, jac, lagr_hess)

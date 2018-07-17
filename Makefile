@@ -37,6 +37,13 @@ build/cutest-patch-stamp:
 	touch "$@"
 
 #
+# Clone
+#
+
+sif:
+	git clone --depth=1 https://bitbucket.org/optrove/sif sif
+
+#
 # Build
 #
 
@@ -71,10 +78,10 @@ env-dev:
 	./env-dev/bin/python -mpip install numpy Cython Tempita psutil
 	./env-dev/bin/python -mpip install git+https://github.com/scipy/scipy@refs/pull/8986/head
 
-run-installed: build env
+run-installed: sif build env
 	make -s run "PYTHON=$(CURDIR)/env/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/installed" 2>&1|tee run-installed.log
 
-run-dev: build env-dev
+run-dev: sif build env-dev
 	make -s run "PYTHON=$(CURDIR)/env-dev/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/dev" 2>&1|tee run-dev.log
 
 

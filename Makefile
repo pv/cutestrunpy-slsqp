@@ -44,6 +44,7 @@ build: build/cutest-build-stamp
 
 build/cutest-build-stamp: build/cutest-patch-stamp
 	install -d build
+	@echo -e "\n*** Answer the config questions, and give default y/n ***\n"
 	cd cutest && bash ../archdefs/install_optrove
 	touch "$@"
 
@@ -80,6 +81,8 @@ run-dev: build env-dev
 diff: run-installed run-dev
 	diff -u run-installed.log run-dev.log || true
 
+clean:
+	rm -rf build cache
 
-.PHONY: patch build run run-installed run-dev all diff
+.PHONY: patch build run run-installed run-dev all diff clean
 

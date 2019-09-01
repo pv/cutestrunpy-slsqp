@@ -301,7 +301,7 @@ static PyObject *cutest__dims(PyObject *self, PyObject *args) {
 		fprintf(df, "PyCUTEst:   n = %-d, m = %-d\n", CUTEst_nvar, CUTEst_ncon);
 #endif
 
-	return decRefTuple(PyTuple_Pack(2, PyInt_FromLong((long)CUTEst_nvar), PyInt_FromLong((long)CUTEst_ncon))); 
+	return decRefTuple(PyTuple_Pack(2, PyLong_FromLong((long)CUTEst_nvar), PyLong_FromLong((long)CUTEst_ncon))); 
 }
 
 
@@ -505,16 +505,16 @@ static PyObject *cutest__setup(PyObject *self, PyObject *args) {
 	fprintf(df, "PyCUTEst: Building structure\n");
 #endif
 	dict=PyDict_New();
-	PyDict_SetItemString(dict, "n", PyInt_FromLong((long)CUTEst_nvar)); 
-	PyDict_SetItemString(dict, "m", PyInt_FromLong((long)CUTEst_ncon)); 
-	PyDict_SetItemString(dict, "nnzh", PyInt_FromLong((long)CUTEst_nnzh)); 
+	PyDict_SetItemString(dict, "n", PyLong_FromLong((long)CUTEst_nvar)); 
+	PyDict_SetItemString(dict, "m", PyLong_FromLong((long)CUTEst_ncon)); 
+	PyDict_SetItemString(dict, "nnzh", PyLong_FromLong((long)CUTEst_nnzh)); 
 	PyDict_SetItemString(dict, "x", Mx); 
 	PyDict_SetItemString(dict, "bl", Mbl); 
 	PyDict_SetItemString(dict, "bu", Mbu); 
-	PyDict_SetItemString(dict, "name", PyString_FromString(CUTEst_probName)); 
+	PyDict_SetItemString(dict, "name", PyUnicode_FromString(CUTEst_probName)); 
 	PyDict_SetItemString(dict, "vartype", Mvt); 
 	if (CUTEst_ncon > 0) {
-		PyDict_SetItemString(dict, "nnzj", PyInt_FromLong((long)CUTEst_nnzj)); 
+		PyDict_SetItemString(dict, "nnzj", PyLong_FromLong((long)CUTEst_nnzj)); 
 		PyDict_SetItemString(dict, "v", (PyObject*)Mv); 
 		PyDict_SetItemString(dict, "cl", (PyObject*)Mcl); 
 		PyDict_SetItemString(dict, "cu", (PyObject*)Mcu); 
@@ -580,7 +580,7 @@ static PyObject *cutest__varnames(PyObject *self, PyObject *args) {
 			ptr++;
 		}
 		trim_string(Fvname, STR_LEN-1);
-		PyList_Append(list, PyString_FromString(Fvname)); 
+		PyList_Append(list, PyUnicode_FromString(Fvname)); 
 	}
 	
 	free(Fvnames); 
@@ -645,7 +645,7 @@ static PyObject *cutest__connames(PyObject *self, PyObject *args) {
 				ptr++;
 			}
 			trim_string(Fcname, STR_LEN-1);
-			PyList_Append(list, PyString_FromString(Fcname)); 
+			PyList_Append(list, PyUnicode_FromString(Fcname)); 
 		}
 	
 		free(Fcnames); 
@@ -2051,14 +2051,14 @@ static PyObject *cutest_report(PyObject *self, PyObject *args) {
 		CUTEST_ureport((integer *)&status, calls, time); 
 		
 	dict=PyDict_New();
-	PyDict_SetItemString(dict, "f", PyInt_FromLong((long)(calls[0]))); 
-	PyDict_SetItemString(dict, "g", PyInt_FromLong((long)(calls[1]))); 
-	PyDict_SetItemString(dict, "H", PyInt_FromLong((long)(calls[2]))); 
-	PyDict_SetItemString(dict, "Hprod", PyInt_FromLong((long)(calls[3]))); 
+	PyDict_SetItemString(dict, "f", PyLong_FromLong((long)(calls[0]))); 
+	PyDict_SetItemString(dict, "g", PyLong_FromLong((long)(calls[1]))); 
+	PyDict_SetItemString(dict, "H", PyLong_FromLong((long)(calls[2]))); 
+	PyDict_SetItemString(dict, "Hprod", PyLong_FromLong((long)(calls[3]))); 
 	if (CUTEst_ncon>0) {
-		PyDict_SetItemString(dict, "c", PyInt_FromLong((long)(calls[4]))); 
-		PyDict_SetItemString(dict, "cg", PyInt_FromLong((long)(calls[5]))); 
-		PyDict_SetItemString(dict, "cH", PyInt_FromLong((long)(calls[6]))); 
+		PyDict_SetItemString(dict, "c", PyLong_FromLong((long)(calls[4]))); 
+		PyDict_SetItemString(dict, "cg", PyLong_FromLong((long)(calls[5]))); 
+		PyDict_SetItemString(dict, "cH", PyLong_FromLong((long)(calls[6]))); 
 	}
 	PyDict_SetItemString(dict, "tsetup", PyFloat_FromDouble((long)(time[0]))); 
 	PyDict_SetItemString(dict, "trun", PyFloat_FromDouble((long)(time[1]))); 
@@ -2092,9 +2092,25 @@ static PyMethodDef _methods[] = {
 
 /* Module initialization 
    Module name must be _rawfile in compile and link */
-__declspec(dllexport) void init_pycutestitf(void)  {
-	(void) Py_InitModule("_pycutestitf", _methods);
+
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_pycutestitf",
+    NULL,
+    -1,
+    _methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+__declspec(dllexport)
+PyObject *PyInit__pycutestitf(void)  {
+        PyObject *m, *d;
+        m = PyModule_Create(&moduledef);
 	import_array();  /* Must be present for NumPy.  Called first after above line. */
+        return m;
 }
 
 #ifdef __cplusplus

@@ -145,8 +145,8 @@ gradsphess -- gradient and sparse Hessian of objective (unconstrained probl.)
 report     -- get usage statistics
 \"\"\"
 
-from _pycutestitf import *
-import _pycutestitf
+from ._pycutestitf import *
+from . import _pycutestitf
 import os
 from scipy.sparse import coo_matrix
 from numpy import zeros
@@ -519,7 +519,7 @@ def decodeAndCompileProblem(problemName, destination=None, sifParams=None, sifOp
 	
 	# Handle params
 	if sifParams is not None:
-		for (key, value) in sifParams.iteritems():
+		for (key, value) in sifParams.items():
 			#if type(key) is not str:
 			#	raise Exception, "sifParams keys must be strings"
 			args+=['-param', key+"="+str(value)]
@@ -626,7 +626,7 @@ def compileAndInstallInterface(problemName, objFileList, destination=None, sifPa
 	# Convert sifParams to a string
 	sifParamsStr=""
 	if sifParams is not None:
-		for (key, value) in sifParams.iteritems():
+		for (key, value) in sifParams.items():
 			sifParamsStr+="%s=%s " % (str(key), str(value))
 	
 	# Convert sifOptions to a string

@@ -14,7 +14,7 @@ export PYCUTEST = $(CUTEST)/src/tools
 export PYCUTEST_CACHE = $(CURDIR)/cache
 export PYTHONPATH = $(PYCUTEST_CACHE):$(CUTEST)/src/python
 
-PYTHON=python
+PYTHON=python3
 
 
 #
@@ -49,7 +49,7 @@ build: build/cutest-build-stamp
 
 build/cutest-build-stamp: build/cutest-patch-stamp
 	install -d build
-	@echo -e "\n*** Answer the config questions, and give default y/n ***\n"
+	@echo -e "\n*** Answer the config questions, select PC/Linux (5/2), and give default y/n ***\n"
 	cd cutest && bash ../archdefs/install_optrove
 	touch "$@"
 

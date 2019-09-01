@@ -191,8 +191,10 @@ def _solve_problem(prob):
         cons_ok = "--"
         agree_trust_constr = "--"
 
-    return (name, len(result.x), cons_eq_mask.sum(), cons_ub_mask.sum() + cons_lb_mask.sum(),
-            result.nit, result.nfev, int(result.success),
+    return (name, len(result.x),
+            int(cons_eq_mask.sum()),
+            int(cons_ub_mask.sum() + cons_lb_mask.sum()),
+            int(result.nit), int(result.nfev), int(result.success),
             cons_ok, agree_trust_constr)
 
 

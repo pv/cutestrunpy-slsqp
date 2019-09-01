@@ -72,9 +72,10 @@ env:
 	./env/bin/python -mpip install numpy scipy psutil
 
 env-dev:
+	@if test "${SCIPY_DEV_BRANCH}" == ""; then echo "Usage: make SCIPY_DEV_BRANCH=git+https://github.com/scipy/scipy@refs/pull/8986/head"; exit 1; fi
 	$(PYTHON) -mvirtualenv env-dev
 	./env-dev/bin/python -mpip install numpy Cython Tempita psutil
-	./env-dev/bin/python -mpip install git+https://github.com/scipy/scipy@refs/pull/8986/head
+	./env-dev/bin/python -mpip install "${SCIPY_DEV_BRANCH}"
 
 run-installed: sif build env
 	make -s run "PYTHON=$(CURDIR)/env/bin/python" "SCRIPT=cutest_slsqp.py" PYCUTEST_CACHE="$(CURDIR)/cache/installed" 2>&1|tee run-installed.log
